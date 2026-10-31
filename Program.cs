@@ -1,22 +1,28 @@
+
+using Microsoft.EntityFrameworkCore;
+using MovieTicketBooking.Data;
+using MovieTicketBooking.Repositories;
+using MovieTicketBooking.Repositories.Interfaces;
+using MovieTicketBooking.Services;
+using MovieTicketBooking.Services.Interfaces;
+
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
-
+// Register controllers
 builder.Services.AddControllers();
-// Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
-builder.Services.AddOpenApi();
 
+// Connect Entity Framework Core to SQL Server
+builder.Services.AddDbContext<ApplicationDbContext>(options =>
+options.UseSqlServer(
+        builder.Configuration.GetConnectionString("DefaultConnection")
+    )
+);
+builder.Services.AddScoped<IMovieRepository, MovieRepository>();
+builder.Services.AddScoped<IMovieService, MovieService>();
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
-{
-    app.MapOpenApi();
-}
-
+// Configure HTTP request pipeline
 app.UseHttpsRedirection();
-
-app.UseAuthorization();
 
 app.MapControllers();
 
