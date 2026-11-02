@@ -1,6 +1,5 @@
 using MovieTicketBooking.Models;
 using Microsoft.EntityFrameworkCore;
-using MovieTicketBooking.Models;
 
 namespace MovieTicketBooking.Data
 {
@@ -20,11 +19,11 @@ namespace MovieTicketBooking.Data
         public DbSet<ShowSeat> ShowSeats { get; set; }
         public DbSet<Booking> Bookings { get; set; }
         public DbSet<BookingSeat> BookingSeats { get; set; }
-
+        public DbSet<User> Users { get; set; }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
-
+            modelBuilder.Entity<User>();
             // MOVIE
             modelBuilder.Entity<Movie>(entity =>
             {
