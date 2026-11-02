@@ -1,4 +1,4 @@
-
+using MovieTicketBooking.Models;
 using Microsoft.EntityFrameworkCore;
 using MovieTicketBooking.Models;
 
