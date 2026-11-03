@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity;
 using MovieTicketBooking.DTOs.Auth;
 using MovieTicketBooking.Models;
 using MovieTicketBooking.Repositories.Interfaces;
@@ -9,23 +9,24 @@ namespace MovieTicketBooking.Services;
 public class UserService : IUserService
 {
     private readonly IUserRepository _userRepository;
-    private readonly IJwtService _jwtService;
     private readonly PasswordHasher<User> _passwordHasher;
+    private readonly TokenService _tokenService;
+    private readonly IConfiguration _configuration;
 
     public UserService(
         IUserRepository userRepository,
-        IJwtService jwtService)
+        TokenService tokenService,
+        IConfiguration configuration)
     {
         _userRepository = userRepository;
-        _jwtService = jwtService;
+        _tokenService = tokenService;
+        _configuration = configuration;
         _passwordHasher = new PasswordHasher<User>();
     }
 
-    public async Task<AuthResponseDto> RegisterAsync(RegisterDto request)
+    public async Task<AuthResponse> RegisterAsync(RegisterRequest request)
     {
-        var existingUser = await _userRepository.GetByEmailAsync(
-            request.Email
-        );
+        var existingUser = await _userRepository.GetByEmailAsync(request.Email);
 
         if (existingUser != null)
         {
@@ -36,59 +37,52 @@ public class UserService : IUserService
         {
             FullName = request.FullName,
             Email = request.Email,
-            Role = "Customer"
+            PhoneNumber = request.PhoneNumber,
+            Role = "Customer",
+            CreatedAt = DateTime.UtcNow
         };
 
         user.PasswordHash = _passwordHasher.HashPassword(
-            user,
-            request.Password
-        );
+            user, request.Password);
 
         await _userRepository.AddAsync(user);
 
-        var token = _jwtService.GenerateToken(user);
-
-        return new AuthResponseDto
-        {
-            UserId = user.UserId,
-            FullName = user.FullName,
-            Email = user.Email,
-            Role = user.Role,
-            Token = token,
-            ExpiresAt = DateTime.UtcNow.AddMinutes(60)
-        };
+        return CreateAuthResponse(user);
     }
 
-    public async Task<AuthResponseDto> LoginAsync(LoginDto request)
+    public async Task<AuthResponse> LoginAsync(LoginRequest request)
     {
         var user = await _userRepository.GetByEmailAsync(request.Email);
 
         if (user == null)
         {
-            throw new UnauthorizedAccessException("Invalid email or password.");
+            throw new UnauthorizedAccessException();
         }
 
-        var verificationResult = _passwordHasher.VerifyHashedPassword(
-            user,
-            user.PasswordHash,
-            request.Password
-        );
+        var result = _passwordHasher.VerifyHashedPassword(
+            user, user.PasswordHash, request.Password);
 
-        if (verificationResult == PasswordVerificationResult.Failed)
+        if (result == PasswordVerificationResult.Failed)
         {
-            throw new UnauthorizedAccessException("Invalid email or password.");
+            throw new UnauthorizedAccessException();
         }
 
-        var token = _jwtService.GenerateToken(user);
+        return CreateAuthResponse(user);
+    }
 
-        return new AuthResponseDto
+    private AuthResponse CreateAuthResponse(User user)
+    {
+        var expiryMinutes = int.Parse(
+            _configuration["Jwt:ExpiryMinutes"]!);
+
+        return new AuthResponse
         {
             UserId = user.UserId,
             FullName = user.FullName,
             Email = user.Email,
             Role = user.Role,
-            Token = token,
-            ExpiresAt = DateTime.UtcNow.AddMinutes(60)
+            Token = _tokenService.GenerateToken(user),
+            ExpiresAt = DateTime.UtcNow.AddMinutes(expiryMinutes)
         };
     }
 }

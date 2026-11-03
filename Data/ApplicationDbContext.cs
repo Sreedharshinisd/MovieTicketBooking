@@ -1,6 +1,7 @@
-using MovieTicketBooking.Models;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-
+using MovieTicketBooking.Models;
 namespace MovieTicketBooking.Data
 {
     public class ApplicationDbContext : DbContext
@@ -245,6 +246,7 @@ namespace MovieTicketBooking.Data
                     .HasForeignKey(b => b.SeatId)
                     .OnDelete(DeleteBehavior.Restrict);
             });
+          
         }
     }
 }

@@ -1,6 +1,6 @@
 ﻿namespace MovieTicketBooking.DTOs.Auth;
 
-public class AuthResponseDto
+public class AuthResponse
 {
     public int UserId { get; set; }
 

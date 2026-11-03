@@ -1,5 +1,7 @@
 
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
+using MovieTicketBooking.Constants;
 using MovieTicketBooking.DTOs.Movies;
 using MovieTicketBooking.Services.Interfaces;
 
@@ -16,7 +18,8 @@ namespace MovieTicketBooking.Controllers
             _movieService = movieService;
         }
 
-        // POST: api/movies
+        // POST: api/movies - Admin only
+        [Authorize(Roles = UserRoles.Admin)]
         [HttpPost]
         public async Task<IActionResult> AddMovie(CreateMovieDto movieDto)
         {
@@ -28,7 +31,8 @@ namespace MovieTicketBooking.Controllers
                 movie);
         }
 
-        // GET: api/movies
+        // GET: api/movies - Admin and Customer
+        [Authorize(Roles = UserRoles.Admin + "," + UserRoles.Customer)]
         [HttpGet]
         public async Task<IActionResult> GetAllMovies()
         {
@@ -37,7 +41,8 @@ namespace MovieTicketBooking.Controllers
             return Ok(movies);
         }
 
-        // GET: api/movies/5
+        // GET: api/movies/5 - Admin and Customer
+        [Authorize(Roles = UserRoles.Admin + "," + UserRoles.Customer)]
         [HttpGet("{id}")]
         public async Task<IActionResult> GetMovieById(int id)
         {
@@ -49,7 +54,8 @@ namespace MovieTicketBooking.Controllers
             return Ok(movie);
         }
 
-        // PUT: api/movies/5
+        // PUT: api/movies/5 - Admin only
+        [Authorize(Roles = UserRoles.Admin)]
         [HttpPut("{id}")]
         public async Task<IActionResult> UpdateMovie(
             int id,
@@ -63,7 +69,8 @@ namespace MovieTicketBooking.Controllers
             return Ok(new { message = "Movie updated successfully." });
         }
 
-        // DELETE: api/movies/5
+        // DELETE: api/movies/5 - Admin only
+        [Authorize(Roles = UserRoles.Admin)]
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteMovie(int id)
         {
@@ -76,6 +83,7 @@ namespace MovieTicketBooking.Controllers
         }
 
         // GET: api/movies/search?title=leo
+        [Authorize(Roles = UserRoles.Admin + "," + UserRoles.Customer)]
         [HttpGet("search")]
         public async Task<IActionResult> SearchMovies([FromQuery] string title)
         {

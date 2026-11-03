@@ -2,7 +2,7 @@
 
 namespace MovieTicketBooking.DTOs.Auth;
 
-public class LoginDto
+public class LoginRequest   
 {
     [Required]
     [EmailAddress]
